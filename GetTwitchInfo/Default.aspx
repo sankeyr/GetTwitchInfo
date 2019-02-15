@@ -1,0 +1,163 @@
+﻿<%@ Page Title="Home Page" Language="C#" MasterPageFile="~/Site.Master" AutoEventWireup="true" CodeBehind="Default.aspx.cs" Inherits="GetTwitchInfo._Default" %>
+
+
+
+<asp:Content ID="BodyContent" ContentPlaceHolderID="MainContent" runat="server">
+    <script>
+        function getEdgeUrl() {
+            debugger;
+            var pageUrl = '<%= ResolveUrl("~/Default.aspx")%>';
+            var edgeUrl = document.getElementById('<%= txbUrl.ClientID %>').value;
+            $.ajax({
+                type: "POST",
+                url: pageUrl + '/GetEdgeUrlAsync',
+                data: "{'url':'" + JSON.stringify(edgeUrl) + "'}",
+                contentType: "application/json;charset=utf-8;",
+                dataType: "json",
+                success: function (msg) {
+                    debugger;
+                    $.ajax({
+                        type: "POST",
+                        url: pageUrl + '/getIp',
+                        data: "{'url':'" + JSON.stringify(msg) + "'}",
+                        contentType: "application/json;charset=utf-8;",
+                        dataType: "json",
+                        success: function (msg) {
+                            debugger;
+                            var tb = document.getElementById('lblIpAndServer');
+                            var myJSON = JSON.stringify(msg);
+                            document.getElementById("lblIpAndServer").value = msg.d;
+
+                        },
+                        error: function (e) {
+                            document.getElementById("errorMessage").innerHTML += e.statusText;
+                            debugger;
+                        }
+                    });
+                    //var tb = document.getElementById('lblIpAndServer');
+                    //var myJSON = JSON.stringify(msg);
+                    //document.getElementById("lblIpAndServer").value = msg.d;
+
+                },
+                error: function (e) {
+                    document.getElementById("errorMessage").innerHTML += e.statusText;
+                    debugger;
+                }
+            });
+        }
+        function loadResources() {
+            debugger;
+            var url = document.getElementById('<%= txbUrl.ClientID %>').value;//"https://video-weaver.fra02.hls.ttvnw.net/v1/playlist/Cs4DEOcH4affV8HXFXH29x6dLXmkBatO6cxTGEphzNnJe16QF9gJ_NG0Uz-s6ouiD0jpKhSgzYL7MeqpCEIXA5H6si5kMwodEEjEY2OhuwnuO3WU5sQO43tz-pFAEX8xfUpNbIXHViioHG20oGrg77h9egkHNN4RBkfI6d01zRi1SurQT3tqBMY292gTLAipnvOgO37UHXB4iinls57UV-vHkaFeOSZg2LmVlcdPMuRIKXsUzAAv6UgZaxX7PSZoscVvKYIszh5ZlxWWkGA62pQhNxLNfiwZ55zsVjG7Zj-g843JgW2PK3x9WMFeGXrp6nWgZSxgmJ1NUEKLLnNNI07Xs0dOAH_JOfbxxnrV8cQbKPfwiWDdg1O9Ejmgjp7XGnuRA9rJZbcbRHK3BA5PaURmH8M5d0XLeOGES1SPyLHcuDa2HqEIJ0h9QlG_avM9HAAwSU9E2T6ENbs-DFYPtAsWOR_TahROiArBI5zH-xDi6sWvnLDwcdPa5pdH9IUp8r-g6x-yxlK92GvJ-zousYUs6lqYolSu2HnGFFL3C2VZWMyzkUX2vm4oOSYVdRZRgthb2cMMrfyDTS1gnhE5tuaLyFj2xdDH9QlvwM0W0_EqEhAlHhnM0Xgx5n32nps56ZC5Ggyz55BUcSny6VCQkpw.m3u8";
+            var tmp = url.lastIndexOf("/");
+            if (tmp != -1) {
+                debugger;
+                var videoEdge = "";
+                var proxyurl = "https://cors-anywhere.herokuapp.com/";
+                var m3u8 = proxyurl + url;
+                $.ajax({
+                    type: "GET",
+                    headers: {
+                        'Access-Control-Allow-Origin': '*',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    url: m3u8,
+                    success: function (urlData) {
+                        debugger;
+                        var lines = urlData.trim().split(/\s*[\r\n]+\s*/g);
+                        var len = lines.length;
+
+                        for (var i = 0; i < len; ++i) {
+                            if (lines[i].includes("video-edge")) {
+                                videoEdge = lines[i];
+                                break;
+                            }
+
+                        }
+                        videoEdge = videoEdge.replace(/(^\w+:|^)\/\//, '');
+                        videoEdge = videoEdge.split('/')[0];
+                        // videoEdge = Sys.Serialization.JavaScriptSerializer.serialize(videoEdge);
+                        debugger;
+                        var pageUrl = '<%= ResolveUrl("~/Default.aspx")%>';
+                        //document.getElementById('txtArea').innerHTML = videoEdge;
+                        $.ajax({
+                            type: "POST",
+                            url: pageUrl + '/getIp',
+                            data: "{'url':'" + JSON.stringify(videoEdge) + "'}",
+                            contentType: "application/json;charset=utf-8;",
+                            dataType: "json",
+                            success: function (msg) {
+                                debugger;
+                                var tb = document.getElementById('lblIpAndServer');
+                                var myJSON = JSON.stringify(msg);
+                                document.getElementById("lblIpAndServer").value = msg.d;
+
+                            },
+                            error: function (e) {
+                                document.getElementById("errorMessage").innerHTML += e.statusText;
+                                debugger;
+                            }
+                        });
+                    },
+                    error: function(request, status, error) {
+                        document.getElementById("errorMessage").innerHTML += "Status: " + status + "-- Error: " + error;
+                    },
+                    complete: function(data) {
+                        console.log(data.statusText);
+                    }
+                });
+
+            }
+        }
+    </script>
+    <div class="row">
+        <div class="col-md-12">
+            <h2>URL Generator</h2>
+            <p>
+                <asp:TextBox runat="server" ID="txbUrl" Width="500px"></asp:TextBox>
+                <a class="btn btn-default" onclick="getEdgeUrl()">Generate</a>
+                <br />
+                <textarea id="lblIpAndServer" style="max-width: 500px; width: 500px"></textarea>
+                <br />
+            </p>
+            <p>
+                <asp:Label runat="server" Text="Streamers Online"></asp:Label>
+                <asp:BulletedList ID="blTabs"
+                    BulletStyle="Disc"
+                    DisplayMode="Text"
+                    runat="server">
+                </asp:BulletedList>
+            </p>
+            <p>
+                <span id="errorMessage"></span>
+            </p>
+        </div>
+        <%--        <div class="col-md-4">
+            <h2>Get more libraries</h2>
+            <p>
+                NuGet is a free Visual Studio extension that makes it easy to add, remove, and update libraries and tools in Visual Studio projects.
+            </p>
+            <p>
+                <a class="btn btn-default" href="https://go.microsoft.com/fwlink/?LinkId=301949">Learn more &raquo;</a>
+            </p>
+        </div>
+        <div class="col-md-4">
+            <h2>Web Hosting</h2>
+            <p>
+                You can easily find a web hosting company that offers the right mix of features and price for your applications.
+            </p>
+            <p>
+                <a class="btn btn-default" href="https://go.microsoft.com/fwlink/?LinkId=301950">Learn more &raquo;</a>
+            </p>
+        </div>
+        <div class="col-md-4">
+            <h2>Web Hosting</h2>
+            <p>
+                You can easily find a web hosting company that offers the right mix of features and price for your applications.
+            </p>
+            <p>
+                <a class="btn btn-default" href="https://go.microsoft.com/fwlink/?LinkId=301950">Learn more &raquo;</a>
+            </p>
+        </div>--%>
+    </div>
+
+</asp:Content>

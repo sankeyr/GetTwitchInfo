@@ -124,9 +124,6 @@ namespace GetTwitchInfo
                 var urlEdge = "video-edge-c2a758.fra02.abs.hls.ttvnw.net";
                 var server = urlEdge.ToIPAddress();
 
-
-                //var objt = JsonConvert.DeserializeObject<dynamic>(strOutputJson);
-
                 //using (var w = new WebClient())
                 //{
                 //    w.Proxy = null;
@@ -173,7 +170,7 @@ namespace GetTwitchInfo
             return null;
         }
 
-        [WebMethod]                                 //Default.aspx.cs
+        [WebMethod]
         public static string getIp(string url)
         {
             url = url.Replace("\"", string.Empty);

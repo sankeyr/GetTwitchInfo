@@ -4,10 +4,69 @@
 
 <asp:Content ID="BodyContent" ContentPlaceHolderID="MainContent" runat="server">
     <script>
-        function getEdgeUrl() {
-            debugger;
+        $(document).ready(function() {
+            //getEdgeUrlOnLoad();
+            document.getElementById('<%= txbUrl.ClientID %>').value = "";
+            document.getElementById("lblIpAndServer").value = "";
+        });
+        function getEdgeUrlOnLoad() {
+
+            var hiddenValues = JSON.parse(document.getElementById('<%= hiddenUrlInfo.ClientID %>').value);
             var pageUrl = '<%= ResolveUrl("~/Default.aspx")%>';
             var edgeUrl = document.getElementById('<%= txbUrl.ClientID %>').value;
+            //var testUrl = "https://video-weaver.fra02.hls.ttvnw.net/v1/playlist/CrwDwSaworbE6Je9fMDnD5pua2XyjrYlYQs2smMxlciWmNm2Ia9p_NvcMMGRHxwjiG-fsQihPrT5WeiA56dk_b2MeknjNQufwtZnI-wzj-gIYc0mZhSKDLHemezt1nkf7_SPjyMZK0-jvbgGUO23h-ZoN0dsZ_XhAhPHG-8JpWXqpz8o4QYWLSAzIBXM6ADyySHWtzmYJ3ZuM8GR1GOrve-7tDn3UdneAr7y27Wo5OaYNGW0Fbvff0Pf0li-oDxXCPPzRrhClZPNYT_XaiMmVdiqS5vXkjtk-cGIAwj-0LlNXuZXBscrLcEH4445QulC1pL5ucA6VP3BiK1Y3R9ayges42ruJAt6d7Z_3EzKQsSHZv8wB54PMIRwXoxTdOp89RE5GtuKnG23zyfE6MEt459iGYlseCcyf5z2QbuXPnng1xX_3L-Cm5RNvzNREmwpky4xEh5IyBQTDqYIYalpY-0rhPAaQKSRd_IwoeiFQdfZNJ23GmmmGaT5O1T9XMUeGfcERetWyoGxc9kJs4B0dwL6QXBJXWNycwRVIB5TzfmIcXjfXmyXQwO5px1IdKCc6PcGfvYtH8R6VTBntaobEhADC7RTGGBq_jAjhGY4WDk4GgycVF5WfW4kYFxOkTs.m3u8"
+            for (var i = 0; i < hiddenValues.length; i++) {
+                for (var j = 0; j < hiddenValues[i].urlInfo.length; j++) {
+                    debugger;
+                    $.ajax({
+                        type: "POST",
+                        url: pageUrl + '/GetEdgeUrlAsync',
+                        data: "{'url':'" + JSON.stringify(hiddenValues[i].urlInfo[j].Url) + "'}",
+                        contentType: "application/json;charset=utf-8;",
+                        dataType: "json",
+                        success: function (msg) {
+                            debugger;
+                            $.ajax({
+                                type: "POST",
+                                url: pageUrl + '/getIp',
+                                async: false,
+                                data: "{'url':'" + JSON.stringify(msg) + "'}",
+                                contentType: "application/json;charset=utf-8;",
+                                dataType: "json",
+                                success: function (msg) {
+                                    debugger;
+                                    var tb = document.getElementById('lblIpAndServer');
+                                    var myJSON = JSON.stringify(msg);
+                                    document.getElementById("lblIpAndServer").value += hiddenValues[i].Streamer + ":" + "Quality: " +
+                                        hiddenValues[i].urlInfo[j].Quality + ":" + msg.d;
+
+                                },
+                                error: function (e) {
+                                    document.getElementById("errorMessage").innerHTML += e.statusText;
+                                    debugger;
+                                }
+                            });
+                            //var tb = document.getElementById('lblIpAndServer');
+                            //var myJSON = JSON.stringify(msg);
+                            //document.getElementById("lblIpAndServer").value = msg.d;
+
+                        },
+                        error: function (e) {
+                            document.getElementById("errorMessage").innerHTML += e.statusText;
+                            debugger;
+                        }
+                    });
+                }
+            }
+
+        }
+        function getEdgeUrl() {
+            debugger;
+            document.getElementById("lblIpAndServer").value = "";
+            var pageUrl = '<%= ResolveUrl("~/Default.aspx")%>';
+             var edgeUrl = document.getElementById('<%= txbUrl.ClientID %>').value;
+            //var testUrl = "https://video-weaver.fra02.hls.ttvnw.net/v1/playlist/CrwDwSaworbE6Je9fMDnD5pua2XyjrYlYQs2smMxlciWmNm2Ia9p_NvcMMGRHxwjiG-fsQihPrT5WeiA56dk_b2MeknjNQufwtZnI-wzj-gIYc0mZhSKDLHemezt1nkf7_SPjyMZK0-jvbgGUO23h-ZoN0dsZ_XhAhPHG-8JpWXqpz8o4QYWLSAzIBXM6ADyySHWtzmYJ3ZuM8GR1GOrve-7tDn3UdneAr7y27Wo5OaYNGW0Fbvff0Pf0li-oDxXCPPzRrhClZPNYT_XaiMmVdiqS5vXkjtk-cGIAwj-0LlNXuZXBscrLcEH4445QulC1pL5ucA6VP3BiK1Y3R9ayges42ruJAt6d7Z_3EzKQsSHZv8wB54PMIRwXoxTdOp89RE5GtuKnG23zyfE6MEt459iGYlseCcyf5z2QbuXPnng1xX_3L-Cm5RNvzNREmwpky4xEh5IyBQTDqYIYalpY-0rhPAaQKSRd_IwoeiFQdfZNJ23GmmmGaT5O1T9XMUeGfcERetWyoGxc9kJs4B0dwL6QXBJXWNycwRVIB5TzfmIcXjfXmyXQwO5px1IdKCc6PcGfvYtH8R6VTBntaobEhADC7RTGGBq_jAjhGY4WDk4GgycVF5WfW4kYFxOkTs.m3u8"
+            debugger;
             $.ajax({
                 type: "POST",
                 url: pageUrl + '/GetEdgeUrlAsync',
@@ -19,6 +78,7 @@
                     $.ajax({
                         type: "POST",
                         url: pageUrl + '/getIp',
+                        async: false,
                         data: "{'url':'" + JSON.stringify(msg) + "'}",
                         contentType: "application/json;charset=utf-8;",
                         dataType: "json",
@@ -44,6 +104,7 @@
                     debugger;
                 }
             });
+
         }
         function loadResources() {
             debugger;
@@ -98,15 +159,20 @@
                             }
                         });
                     },
-                    error: function(request, status, error) {
+                    error: function (request, status, error) {
                         document.getElementById("errorMessage").innerHTML += "Status: " + status + "-- Error: " + error;
                     },
-                    complete: function(data) {
+                    complete: function (data) {
                         console.log(data.statusText);
                     }
                 });
 
             }
+        }
+        function openInTab() {
+            var url = document.getElementById('<%= txbUrl.ClientID %>').value;
+            var win = window.open(url, '_blank');
+            win.focus();
         }
     </script>
     <div class="row">
@@ -115,6 +181,7 @@
             <p>
                 <asp:TextBox runat="server" ID="txbUrl" Width="500px"></asp:TextBox>
                 <a class="btn btn-default" onclick="getEdgeUrl()">Generate</a>
+                <a class="btn btn-default" onclick="openInTab()">Open In New Tab</a>
                 <br />
                 <textarea id="lblIpAndServer" style="max-width: 500px; width: 500px"></textarea>
                 <br />
@@ -126,9 +193,11 @@
                     DisplayMode="Text"
                     runat="server">
                 </asp:BulletedList>
+                <table id="tableContent" border="1" runat="server"></table>
             </p>
             <p>
                 <span id="errorMessage"></span>
+                <asp:Label runat="server" ID="lblError"></asp:Label>
             </p>
         </div>
         <%--        <div class="col-md-4">
@@ -159,5 +228,5 @@
             </p>
         </div>--%>
     </div>
-
+    <asp:HiddenField ID="hiddenUrlInfo" runat="server" />
 </asp:Content>

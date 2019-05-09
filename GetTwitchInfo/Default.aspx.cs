@@ -96,6 +96,13 @@ namespace GetTwitchInfo
 
         }
 
+        public class TokenSig
+        {
+            public string token { get; set; }
+
+            public string sig { get; set; }
+        }
+
         protected void Page_Load(object sender, EventArgs e)
         {
             //string livestreamerArgs = "twitch.tv/BreaK/ audio_only";
@@ -112,6 +119,8 @@ namespace GetTwitchInfo
             //else
             //    GetEdgeUrlAsync(edgeUrl2);
             //BuildTable();
+
+            //testUrlStuff();
 
             string url = "https://api.twitch.tv/kraken/streams/followed?oauth_token=xsmfc5wupj9nkjyyrkayh933b0kayk";
             string apiUrl = "https://api.twitch.tv/kraken/streams/followed?oauth_token=xsmfc5wupj9nkjyyrkayh933b0kayk";
@@ -130,7 +139,7 @@ namespace GetTwitchInfo
             //Your fileName
             string filename = "streamlink.exe";
             string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, subfoldername, filename);
-            string filePath2 = "D:\\Hosting\\11872091\\html\\Streamlink\\bin\\streamlink.exe";
+            string filePath2 = "C:\\Program Files (x86)\\Streamlink\\bin\\streamlink.exe";
 
             using (HttpWebResponse response = request.GetResponse() as HttpWebResponse)
             {
@@ -155,10 +164,10 @@ namespace GetTwitchInfo
 
 
 
-                //List<StreamerUrlData> weaverUrls = new List<StreamerUrlData>();
-                //List<StreamerUrlData.UrlInfo> weaverUrlInfos = new List<StreamerUrlData.UrlInfo>();
-                //int counter = 0;
-                //int qualityCounter = 0;
+                List<StreamerUrlData> weaverUrls = new List<StreamerUrlData>();
+                List<StreamerUrlData.UrlInfo> weaverUrlInfos = new List<StreamerUrlData.UrlInfo>();
+                int counter = 0;
+                int qualityCounter = 0;
                 //foreach (var stream in data.streams)
                 //{
                 //    if (stream.channel.display_name.ToLower() == "break")
@@ -187,12 +196,12 @@ namespace GetTwitchInfo
                 //        weaverUrls.Add(sd);
                 //        break;
                 //    }
-                   
+
                 //}
                 //var jsonOutput = JsonConvert.SerializeObject(weaverUrls);
                 //hiddenUrlInfo.Value = jsonOutput;
-                var urlEdge = "video-edge-c2a758.fra02.abs.hls.ttvnw.net";
-                var server = urlEdge.ToIPAddress();
+                //var urlEdge = "video-edge-c2a758.fra02.abs.hls.ttvnw.net";
+                //var server = urlEdge.ToIPAddress();
 
                 //using (var w = new WebClient())
                 //{
@@ -205,6 +214,65 @@ namespace GetTwitchInfo
                 //    var getStaff = stream.SelectToken("chatters").SelectToken("staff").Select(s => (string)s).ToList();
                 //    var getModerators = stream.SelectToken("chatters").SelectToken("moderators").Select(s => (string)s).ToList();
                 //    var getViewers = stream.SelectToken("chatters").SelectToken("viewers").Select(s => (string)s).ToList(); 
+                //}
+            }
+        }
+
+        protected void testUrlStuff()
+        {
+            string apiUrl = "https://api.twitch.tv/api/channels/drdisrespect/access_token?client_id=cayy6vdna64rpak248vna4kbqythej";
+
+            Uri address = new Uri(apiUrl);
+
+            HttpWebRequest request = WebRequest.Create(address) as HttpWebRequest;
+
+            request.Method = "GET";
+            request.ContentType = "text/xml";
+            var tokenSig = new TokenSig();
+            using (HttpWebResponse response = request.GetResponse() as HttpWebResponse)
+            {
+                StreamReader reader = new StreamReader(response.GetResponseStream());
+
+                string strOutputJson = FormatJson(reader.ReadToEnd());
+
+                var data = JsonConvert.DeserializeObject<TokenSig>(strOutputJson);
+                tokenSig = data;
+
+
+
+                //foreach (var stream in data.streams)
+                //{
+                //    ListItem li = new ListItem();
+                //    li.Value = stream.channel.url; //html goes here i.e.  xtab1.html
+                //    li.Text = "twitch.tv/" + stream.channel.display_name; //text name goes i.e. here tab1
+                //    blTabs.Items.Add(li);
+                //}
+            }
+
+            apiUrl = "https://usher.ttvnw.net/api/channel/hls/drdisrespect.m3u8?allow_audio_only=true&sig=" + tokenSig.sig + "\\&token=" + Uri.EscapeUriString(tokenSig.token);
+
+            address = new Uri(apiUrl);
+
+            request = WebRequest.Create(address) as HttpWebRequest;
+
+            request.Method = "GET";
+            request.ContentType = "text/xml";
+            using (HttpWebResponse response = request.GetResponse() as HttpWebResponse)
+            {
+                StreamReader reader = new StreamReader(response.GetResponseStream());
+
+                string strOutputJson = FormatJson(reader.ReadToEnd());
+
+                var data = JsonConvert.DeserializeObject<TokenSig>(strOutputJson);
+
+
+
+                //foreach (var stream in data.streams)
+                //{
+                //    ListItem li = new ListItem();
+                //    li.Value = stream.channel.url; //html goes here i.e.  xtab1.html
+                //    li.Text = "twitch.tv/" + stream.channel.display_name; //text name goes i.e. here tab1
+                //    blTabs.Items.Add(li);
                 //}
             }
         }

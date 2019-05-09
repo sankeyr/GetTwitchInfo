@@ -10,7 +10,6 @@
             document.getElementById("lblIpAndServer").value = "";
         });
         function getEdgeUrlOnLoad() {
-
             var hiddenValues = JSON.parse(document.getElementById('<%= hiddenUrlInfo.ClientID %>').value);
             var pageUrl = '<%= ResolveUrl("~/Default.aspx")%>';
             var edgeUrl = document.getElementById('<%= txbUrl.ClientID %>').value;
@@ -227,6 +226,9 @@
                 <a class="btn btn-default" href="https://go.microsoft.com/fwlink/?LinkId=301950">Learn more &raquo;</a>
             </p>
         </div>--%>
+    </div>
+    <div class="row">
+        <iframe src="https://pwn.sh/tools/getstream.html" width="1000" height="300"></iframe>
     </div>
     <asp:HiddenField ID="hiddenUrlInfo" runat="server" />
 </asp:Content>

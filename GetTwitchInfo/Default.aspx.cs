@@ -11,6 +11,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Script.Serialization;
+using System.Web.Security;
 using System.Web.Services;
 using System.Web.UI;
 using System.Web.UI.HtmlControls;
@@ -103,24 +104,39 @@ namespace GetTwitchInfo
             public string sig { get; set; }
         }
 
+        public class StreamerApiData
+        {
+
+            public Urls urls { get; set; }
+            public bool success { get; set; }
+
+            public class Urls
+            {
+                [JsonProperty("480p")]
+                public string _480p { get; set; }
+
+                public string audio_only { get; set; }
+
+                [JsonProperty("360p")]
+                public string _360p { get; set; }
+
+                [JsonProperty("1080p60")]
+                public string _1080p60 { get; set; }
+
+                [JsonProperty("720p60")]
+                public string _720p60 { get; set; }
+
+                [JsonProperty("160p")]
+                public string _160p { get; set; }
+
+                [JsonProperty("720p")]
+                public string _720p { get; set; }
+            }
+
+        }
+
         protected void Page_Load(object sender, EventArgs e)
         {
-            //string livestreamerArgs = "twitch.tv/BreaK/ audio_only";
-            //string one = StartLivestreamer(livestreamerArgs);
-            //string livestreamerArgs2 = "twitch.tv/vsnz/ 160p";
-            //string onesix = StartLivestreamer(livestreamerArgs2);
-
-
-            //string edgeUrl = Request.QueryString["edgeurl"];
-            //string edgeUrl2 = "https://video-weaver.fra02.hls.ttvnw.net/v1/playlist/Cs4DJP-PfX6B7HLOgNpoxRlaubFsj5ZfBh6W7_jaAZhL3fV77-k8RL-M4xYcT0SCe9U9QfM9yNFDnjPP1dO17rBDKlegRTWmr_FQ9AZU-8mDZASU7J2_oJIN7MDdDOovPqbZEMajNusCwlGzt_-ySa8NRED06czcPTgeXJlVbCVBeT4fgRbfDoQtG9j6_9Twp3T5BRNLhutoOcKmMOFvgZwn2WbwrQlCbY38FbFTPD_P5Sr39kLZQI_xoCx_aUeX5oBOaEmA9LtXnrHjuRv6TvTXnHpYkztpu1EWWnXgIDUNF84G9_pe9WduABemf5dg5qgzh2A-hRnV1KcPd6sCHrdjZ-iTKu01sEfsqoX36-5HM8Kg39ma0GkwsnJ25QwvbiHxkh-xVdlanx1pcMyTEA-Xux7pHY7KousK4qjlNWHR35L1OfBSgxnRSJLbGCIc_ce4v3cB4QUTR5VkzprhEvqGYtgnPLCBZwQAbJSygkBaTBfrqEg14DJjDVB_2kWqEDHapoV5g8rhofGtOuRYCPPAegLPWeAkCeiwaE8XJC780mKcKHTJju6ZDc9hwA3eY7ew8QkyY6JJ8Y13E63GTq4Yv4_JUN70KvkKyxWWDEGJEhDbHtj3618BRiLz4bf8aipsGgxdwavsUukGgR3H9Xc.m3u8";
-
-            //if (!string.IsNullOrWhiteSpace(edgeUrl))
-            //    GetEdgeUrlAsync(edgeUrl);
-            //else
-            //    GetEdgeUrlAsync(edgeUrl2);
-            //BuildTable();
-
-            //testUrlStuff();
 
             string url = "https://api.twitch.tv/kraken/streams/followed?oauth_token=xsmfc5wupj9nkjyyrkayh933b0kayk";
             string apiUrl = "https://api.twitch.tv/kraken/streams/followed?oauth_token=xsmfc5wupj9nkjyyrkayh933b0kayk";
@@ -153,199 +169,28 @@ namespace GetTwitchInfo
                 var data = JsonConvert.DeserializeObject<Data>(strOutputJson);
 
 
-
+                ltrInfo.Text = "<ul>";
                 foreach (var stream in data.streams)
                 {
-                    ListItem li = new ListItem();
-                    li.Value = stream.channel.url;  //html goes here i.e.  xtab1.html
-                    li.Text = "twitch.tv/" + stream.channel.display_name;  //text name goes i.e. here tab1
-                    blTabs.Items.Add(li);
+                    //ltrInfo.Text += "<li><a onclick=\"fillBoxFromApi('" + stream.channel.display_name.ToString() + "')\">" + "twitch.tv/" + stream.channel.display_name + "</a></li>";
+                    ltrInfo.Text += 
+                    "<li>"+
+                    "<span style=\"font-weight:bold;\">" + "twitch.tv/" + stream.channel.display_name + "</span><br/>" +
+                    "<a onclick=\"fillBoxFromApi('" + stream.channel.display_name.ToString() + ":_160p" + "')\">" + "160p" + "</a>&nbsp;" +
+                    "<a onclick=\"fillBoxFromApi('" + stream.channel.display_name.ToString() + ":_360p" + "')\">" + "360p" + "</a>&nbsp;" +
+                    "<a onclick=\"fillBoxFromApi('" + stream.channel.display_name.ToString() + ":_480p" + "')\">" + "480p" + "</a>&nbsp;" +
+                    "<a onclick=\"fillBoxFromApi('" + stream.channel.display_name.ToString() + ":_760p" + "')\">" + "760p" + "</a>&nbsp;" +
+                    "<a onclick=\"fillBoxFromApi('" + stream.channel.display_name.ToString() + ":audio_only" + "')\">" + "AudioOnly" + "</a>&nbsp;" +
+                    "</li>";
                 }
-
+                ltrInfo.Text += "</ul>";
 
 
                 List<StreamerUrlData> weaverUrls = new List<StreamerUrlData>();
                 List<StreamerUrlData.UrlInfo> weaverUrlInfos = new List<StreamerUrlData.UrlInfo>();
                 int counter = 0;
                 int qualityCounter = 0;
-                //foreach (var stream in data.streams)
-                //{
-                //    if (stream.channel.display_name.ToLower() == "break")
-                //    {
-                //        StreamerUrlData sd = new StreamerUrlData();
-                //        sd.Streamer = stream.channel.display_name;
-                //        for (int i = 0; i < 2; i++)
-                //        {
-                //            weaverUrlInfos = new List<StreamerUrlData.UrlInfo>();
-                //            StreamerUrlData.UrlInfo info = new StreamerUrlData.UrlInfo
-                //            {
-                //                Quality = "Audio Only",
-                //                Url = StartLivestreamer("twitch.tv/" + stream.channel.display_name + "/ audio_only", filePath2)
-                //            };
-                //            weaverUrlInfos.Add(info);
-                //            info = new StreamerUrlData.UrlInfo
-                //            {
-                //                Quality = "160p",
-                //                Url = StartLivestreamer("twitch.tv/" + stream.channel.display_name + "/ 160p", filePath2)
-                //            };
-                //            weaverUrlInfos.Add(info);
-                //            sd.urlInfo = weaverUrlInfos;
-                //        }
-
-
-                //        weaverUrls.Add(sd);
-                //        break;
-                //    }
-
-                //}
-                //var jsonOutput = JsonConvert.SerializeObject(weaverUrls);
-                //hiddenUrlInfo.Value = jsonOutput;
-                //var urlEdge = "video-edge-c2a758.fra02.abs.hls.ttvnw.net";
-                //var server = urlEdge.ToIPAddress();
-
-                //using (var w = new WebClient())
-                //{
-                //    w.Proxy = null;
-                //    var jsonData = w.DownloadString(string.Format(apiUrl));
-                //    var stream = JObject.Parse(jsonData.Replace(@"\r\n", ""));
-                //    var chatLinks = stream.SelectToken(@"_links");
-                //    var chatCount = stream.SelectToken("chatter_count");
-                //    var getAdmins = stream.SelectToken("chatters").SelectToken("admins").Select(s => (string)s).ToList();
-                //    var getStaff = stream.SelectToken("chatters").SelectToken("staff").Select(s => (string)s).ToList();
-                //    var getModerators = stream.SelectToken("chatters").SelectToken("moderators").Select(s => (string)s).ToList();
-                //    var getViewers = stream.SelectToken("chatters").SelectToken("viewers").Select(s => (string)s).ToList(); 
-                //}
             }
-        }
-
-        protected void testUrlStuff()
-        {
-            string apiUrl = "https://api.twitch.tv/api/channels/drdisrespect/access_token?client_id=cayy6vdna64rpak248vna4kbqythej";
-
-            Uri address = new Uri(apiUrl);
-
-            HttpWebRequest request = WebRequest.Create(address) as HttpWebRequest;
-
-            request.Method = "GET";
-            request.ContentType = "text/xml";
-            var tokenSig = new TokenSig();
-            using (HttpWebResponse response = request.GetResponse() as HttpWebResponse)
-            {
-                StreamReader reader = new StreamReader(response.GetResponseStream());
-
-                string strOutputJson = FormatJson(reader.ReadToEnd());
-
-                var data = JsonConvert.DeserializeObject<TokenSig>(strOutputJson);
-                tokenSig = data;
-
-
-
-                //foreach (var stream in data.streams)
-                //{
-                //    ListItem li = new ListItem();
-                //    li.Value = stream.channel.url; //html goes here i.e.  xtab1.html
-                //    li.Text = "twitch.tv/" + stream.channel.display_name; //text name goes i.e. here tab1
-                //    blTabs.Items.Add(li);
-                //}
-            }
-
-            apiUrl = "https://usher.ttvnw.net/api/channel/hls/drdisrespect.m3u8?allow_audio_only=true&sig=" + tokenSig.sig + "\\&token=" + Uri.EscapeUriString(tokenSig.token);
-
-            address = new Uri(apiUrl);
-
-            request = WebRequest.Create(address) as HttpWebRequest;
-
-            request.Method = "GET";
-            request.ContentType = "text/xml";
-            using (HttpWebResponse response = request.GetResponse() as HttpWebResponse)
-            {
-                StreamReader reader = new StreamReader(response.GetResponseStream());
-
-                string strOutputJson = FormatJson(reader.ReadToEnd());
-
-                var data = JsonConvert.DeserializeObject<TokenSig>(strOutputJson);
-
-
-
-                //foreach (var stream in data.streams)
-                //{
-                //    ListItem li = new ListItem();
-                //    li.Value = stream.channel.url; //html goes here i.e.  xtab1.html
-                //    li.Text = "twitch.tv/" + stream.channel.display_name; //text name goes i.e. here tab1
-                //    blTabs.Items.Add(li);
-                //}
-            }
-        }
-
-        protected void BuildTable()
-        {
-            HtmlTableRow row = new HtmlTableRow();
-            HtmlTableCell cell = new HtmlTableCell();
-
-            cell.ColSpan = 3;
-            cell.InnerText = "Record 1";
-            row.Cells.Add(cell);
-            tableContent.Rows.Add(row);
-
-            row = new HtmlTableRow();
-            cell = new HtmlTableCell();
-
-            cell.InnerText = "1";
-            row.Cells.Add(cell);
-
-            cell = new HtmlTableCell();
-            cell.InnerText = "2";
-            row.Cells.Add(cell);
-
-            cell = new HtmlTableCell();
-            cell.InnerText = "3";
-            row.Cells.Add(cell);
-
-            tableContent.Rows.Add(row);
-
-            row = new HtmlTableRow();
-            cell = new HtmlTableCell();
-
-            cell.InnerText = "a";
-            row.Cells.Add(cell);
-
-            cell = new HtmlTableCell();
-            cell.InnerText = "b";
-            row.Cells.Add(cell);
-
-            cell = new HtmlTableCell();
-            cell.InnerText = "c";
-            row.Cells.Add(cell);
-
-            tableContent.Rows.Add(row);
-
-
-            row = new HtmlTableRow();
-            cell = new HtmlTableCell();
-            cell.InnerText = "m";
-            row.Cells.Add(cell);
-
-            cell = new HtmlTableCell();
-            cell.InnerText = "n";
-            row.Cells.Add(cell);
-
-            cell = new HtmlTableCell();
-            cell.InnerText = "o";
-            row.Cells.Add(cell);
-
-            tableContent.Rows.Add(row);
-
-            row = new HtmlTableRow();
-            cell = new HtmlTableCell();
-
-            //HtmlInputButton input = new HtmlInputButton();
-            //input.ID = "Button1";
-            //input.Value = "button";
-
-            //cell.ColSpan = 3;
-            //cell.Controls.Add(input);
-            //row.Cells.Add(cell);
-            //tableContent.Rows.Add(row);
         }
 
         [WebMethod]
@@ -366,14 +211,58 @@ namespace GetTwitchInfo
                     if (lines.Any())
                     {
                         string edgeUrl = null;
-                        if (lines[8].StartsWith("https"))
+                        foreach (string line in lines)
                         {
-                            edgeUrl = lines[8];
-                            edgeUrl = edgeUrl.Substring("https://".Length);
-                            return edgeUrl = edgeUrl.Split('/')[0];
+                            if (line.StartsWith("https"))
+                            {
+                                edgeUrl = line;
+                                edgeUrl = edgeUrl.Substring("https://".Length);
+                                return edgeUrl = edgeUrl.Split('/')[0];
+                            }
                         }
-
                     }
+                }
+            }
+            return null;
+        }
+
+        [WebMethod]
+        public static string GetStreamerLink(string streamer)
+        {
+            streamer = streamer.Replace("\"", "");
+            string[] streamerInfo = streamer.Split(':');
+            string streamerName = streamerInfo[0];
+            string streamerQuality = streamerInfo[1];
+            string apiUrl = "https://pwn.sh/tools/streamapi.py?url=twitch.tv/" + streamerName;
+
+            Uri address = new Uri(apiUrl);
+
+            HttpWebRequest request = WebRequest.Create(address) as HttpWebRequest;
+
+            request.Method = "GET";
+            request.ContentType = "text/xml";
+            StreamerApiData apd = new StreamerApiData();
+            using (HttpWebResponse response = request.GetResponse() as HttpWebResponse)
+            {
+                StreamReader reader = new StreamReader(response.GetResponseStream());
+
+
+                string strOutputJson = FormatJson(reader.ReadToEnd());
+
+                var data = JsonConvert.DeserializeObject<StreamerApiData>(strOutputJson);
+
+                switch (streamerQuality)
+                {
+                    case "_160p":
+                        return data.urls._160p;
+                    case "_360p":
+                        return data.urls._360p;
+                    case "_480p":
+                        return data.urls._480p;
+                    case "_760p":
+                        return data.urls._720p;
+                    case "audio_only":
+                        return data.urls.audio_only;
                 }
             }
             return null;
@@ -388,15 +277,10 @@ namespace GetTwitchInfo
             url = url.Replace("}", string.Empty);
             IPAddress[] localIPAddress = Dns.GetHostAddresses(url);
             var ipAddress = localIPAddress.FirstOrDefault();
-
-            //var server = url.ToIPAddress();
-            //var blog = url.ToIPAddress();
-            //var google = url.ToIPAddress();
-            //var ipv6Google = url.ToIPAddress(true); // if available will be an IPV6
             return ipAddress + " " + url;
         }
 
-        protected string FormatJson(string json)
+        protected static string FormatJson(string json)
         {
             dynamic parsedJson = JsonConvert.DeserializeObject(json);
             return JsonConvert.SerializeObject(parsedJson, Formatting.Indented);
@@ -407,7 +291,7 @@ namespace GetTwitchInfo
             string streamWeaver = string.Empty;
             StringBuilder sb = new StringBuilder();
             // the process needs to be launched from its own thread so it doesn't lockup the UI
-           
+
             Task responseTask = Task.Run(() =>
             {
                 var proc = new Process

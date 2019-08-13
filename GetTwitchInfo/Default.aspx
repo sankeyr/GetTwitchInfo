@@ -173,6 +173,26 @@
             var win = window.open(url, '_blank');
             win.focus();
         }
+        function fillBoxFromApi(streamer) {
+            debugger;
+            var pageUrl = '<%= ResolveUrl("~/Default.aspx")%>';
+            $.ajax({
+                type: "POST",
+                url: pageUrl + '/GetStreamerLink',
+                data: "{'streamer':'" + JSON.stringify(streamer) + "'}",
+                contentType: "application/json;charset=utf-8;",
+                dataType: "json",
+                success: function (msg) {
+                    debugger;
+                    document.getElementById('<%= txbUrl.ClientID %>').value = msg.d;
+                    getEdgeUrl();
+                },
+                error: function (e) {
+                    document.getElementById("errorMessage").innerHTML += e.statusText;
+                    debugger;
+                }
+            });
+        }
     </script>
     <div class="row">
         <div class="col-md-12">
@@ -187,9 +207,10 @@
             </p>
             <p>
                 <asp:Label runat="server" Text="Streamers Online"></asp:Label>
+                <asp:Literal ID="ltrInfo" runat="server"></asp:Literal>
                 <asp:BulletedList ID="blTabs"
                     BulletStyle="Disc"
-                    DisplayMode="Text"
+                    DisplayMode="LinkButton"
                     runat="server">
                 </asp:BulletedList>
                 <table id="tableContent" border="1" runat="server"></table>
@@ -227,8 +248,8 @@
             </p>
         </div>--%>
     </div>
-    <div class="row">
+<%--    <div class="row">
         <iframe src="https://pwn.sh/tools/getstream.html" width="1000" height="300"></iframe>
-    </div>
+    </div>--%>
     <asp:HiddenField ID="hiddenUrlInfo" runat="server" />
 </asp:Content>

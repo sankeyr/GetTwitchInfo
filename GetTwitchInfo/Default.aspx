@@ -5,9 +5,10 @@
 <asp:Content ID="BodyContent" ContentPlaceHolderID="MainContent" runat="server">
     <script>
         $(document).ready(function() {
-            //getEdgeUrlOnLoad();
+            //getEdgeUrlOnLoad();            
             document.getElementById('<%= txbUrl.ClientID %>').value = "";
             document.getElementById("lblIpAndServer").value = "";
+            $(".loader").addClass("hidden");
         });
         function getEdgeUrlOnLoad() {
             var hiddenValues = JSON.parse(document.getElementById('<%= hiddenUrlInfo.ClientID %>').value);
@@ -86,10 +87,11 @@
                             var tb = document.getElementById('lblIpAndServer');
                             var myJSON = JSON.stringify(msg);
                             document.getElementById("lblIpAndServer").value = msg.d;
-
+                            $(".loader").addClass("hidden");
                         },
                         error: function (e) {
                             document.getElementById("errorMessage").innerHTML += e.statusText;
+                            $(".loader").addClass("hidden");
                             debugger;
                         }
                     });
@@ -100,6 +102,7 @@
                 },
                 error: function (e) {
                     document.getElementById("errorMessage").innerHTML += e.statusText;
+                    $(".loader").addClass("hidden");
                     debugger;
                 }
             });
@@ -175,6 +178,7 @@
         }
         function fillBoxFromApi(streamer) {
             debugger;
+            $(".loader").removeClass("hidden");
             var pageUrl = '<%= ResolveUrl("~/Default.aspx")%>';
             $.ajax({
                 type: "POST",
@@ -188,6 +192,7 @@
                     getEdgeUrl();
                 },
                 error: function (e) {
+                    $(".loader").addClass("hidden");
                     document.getElementById("errorMessage").innerHTML += e.statusText;
                     debugger;
                 }
@@ -197,14 +202,22 @@
     <div class="row">
         <div class="col-md-12">
             <h2>URL Generator</h2>
-            <p>
+            <div>
                 <asp:TextBox runat="server" ID="txbUrl" Width="500px"></asp:TextBox>
                 <a class="btn btn-default" onclick="getEdgeUrl()">Generate</a>
                 <a class="btn btn-default" onclick="openInTab()">Open In New Tab</a>
                 <br />
-                <textarea id="lblIpAndServer" style="max-width: 500px; width: 500px"></textarea>
+                <div style="float: left">
+                    <textarea id="lblIpAndServer" style="max-width: 500px; width: 500px"></textarea>
+                </div>                
+                <div class="loader" style="float: left; padding-top: 10px; padding-left: 10px;">
+                    <div class="loader-wheel"></div>
+                    <div class="loader-text"></div>
+                </div>
                 <br />
-            </p>
+            </div>
+            <br/>
+            <br/>
             <p>
                 <asp:Label runat="server" Text="Streamers Online"></asp:Label>
                 <asp:Literal ID="ltrInfo" runat="server"></asp:Literal>

@@ -47,39 +47,88 @@ namespace GetTwitchInfo
     }
     public partial class _Default : Page
     {
-        public class Data
+        //public class Data
+        //{
+        //    public int _total { get; set; }
+
+        //    public Links _links { get; set; }
+
+        //    public List<Streams> streams { get; set; }
+
+        //    public class Streams
+        //    {
+        //        public string _id { get; set; }
+
+        //        public Channel channel { get; set; }
+        //        //public Channel channel { get; set; }
+        //        //public List<string> moderators { get; set; }
+        //        //public List<string> staff { get; set; }
+        //        //public List<string> viewers { get; set; }
+        //        //public List<string> admins { get; set; }
+        //    }
+
+        //    public class Links
+        //    {
+        //        public string self { get; set; }
+        //        public string next { get; set; }
+        //    }
+
+        //    public class Channel
+        //    {
+        //        public string display_name { get; set; }
+        //        public string game { get; set; }
+        //        public string name { get; set; }
+        //        public string url { get; set; }
+        //    }
+        //}
+
+
+        public class Rootobject2
         {
-            public int _total { get; set; }
+            public Datum2[] data { get; set; }
+            public Pagination2 pagination { get; set; }
+        }
 
-            public Links _links { get; set; }
+        public class Pagination2
+        {
+            public string cursor { get; set; }
+        }
 
-            public List<Streams> streams { get; set; }
+        public class Datum2
+        {
+            public string id { get; set; }
+            public string user_id { get; set; }
+            public string user_name { get; set; }
+            public string game_id { get; set; }
+            public string type { get; set; }
+            public string title { get; set; }
+            public int viewer_count { get; set; }
+            public DateTime started_at { get; set; }
+            public string language { get; set; }
+            public string thumbnail_url { get; set; }
+            public string[] tag_ids { get; set; }
+        }
 
-            public class Streams
-            {
-                public string _id { get; set; }
 
-                public Channel channel { get; set; }
-                //public Channel channel { get; set; }
-                //public List<string> moderators { get; set; }
-                //public List<string> staff { get; set; }
-                //public List<string> viewers { get; set; }
-                //public List<string> admins { get; set; }
-            }
+        public class Rootobject
+        {
+            public int total { get; set; }
+            public Datum[] data { get; set; }
+            public Pagination pagination { get; set; }
+        }
 
-            public class Links
-            {
-                public string self { get; set; }
-                public string next { get; set; }
-            }
+        public class Pagination
+        {
+            public string cursor { get; set; }
+        }
 
-            public class Channel
-            {
-                public string display_name { get; set; }
-                public string game { get; set; }
-                public string name { get; set; }
-                public string url { get; set; }
-            }
+        public class Datum
+        {
+            public string from_id { get; set; }
+            public string from_name { get; set; }
+            public string to_id { get; set; }
+            public string to_name { get; set; }
+            public DateTime followed_at { get; set; }
         }
 
         public class StreamerUrlData
@@ -139,13 +188,14 @@ namespace GetTwitchInfo
         {
 
             string url = "https://api.twitch.tv/kraken/streams/followed?oauth_token=xsmfc5wupj9nkjyyrkayh933b0kayk";
-            string apiUrl = "https://api.twitch.tv/kraken/streams/followed?oauth_token=xsmfc5wupj9nkjyyrkayh933b0kayk";
+            string apiUrl = " https://api.twitch.tv/helix/users/follows?from_id=108559469";
 
 
             Uri address = new Uri(apiUrl);
 
             // Create the web request 
             HttpWebRequest request = WebRequest.Create(address) as HttpWebRequest;
+            request.Headers["Client-ID"] = "cayy6vdna64rpak248vna4kbqythej";
 
             // Set type to POST 
             request.Method = "GET";
@@ -166,31 +216,72 @@ namespace GetTwitchInfo
                 string strOutputJson = FormatJson(reader.ReadToEnd());
 
                 //dynamic jsonObj = JsonConvert.DeserializeObject(strOutputJson);
-                var data = JsonConvert.DeserializeObject<Data>(strOutputJson);
+                var data = JsonConvert.DeserializeObject<Rootobject>(strOutputJson);
 
 
                 ltrInfo.Text = "<ul>";
-                foreach (var stream in data.streams)
+
+                foreach (var stream in data.data)
                 {
-                    //ltrInfo.Text += "<li><a onclick=\"fillBoxFromApi('" + stream.channel.display_name.ToString() + "')\">" + "twitch.tv/" + stream.channel.display_name + "</a></li>";
-                    ltrInfo.Text += 
-                    "<li>"+
-                    "<span style=\"font-weight:bold;\">" + "twitch.tv/" + stream.channel.display_name + "</span><br/>" +
-                    "<a onclick=\"fillBoxFromApi('" + stream.channel.display_name.ToString() + ":_160p" + "')\">" + "160p" + "</a>&nbsp;" +
-                    "<a onclick=\"fillBoxFromApi('" + stream.channel.display_name.ToString() + ":_360p" + "')\">" + "360p" + "</a>&nbsp;" +
-                    "<a onclick=\"fillBoxFromApi('" + stream.channel.display_name.ToString() + ":_480p" + "')\">" + "480p" + "</a>&nbsp;" +
-                    "<a onclick=\"fillBoxFromApi('" + stream.channel.display_name.ToString() + ":_760p" + "')\">" + "760p" + "</a>&nbsp;" +
-                    "<a onclick=\"fillBoxFromApi('" + stream.channel.display_name.ToString() + ":audio_only" + "')\">" + "AudioOnly" + "</a>&nbsp;" +
-                    "</li>";
+                    var isLive = IsLive(stream.to_id);
+                    if (isLive)
+                    {
+                        //ltrInfo.Text += "<li><a onclick=\"fillBoxFromApi('" + stream.channel.display_name.ToString() + "')\">" + "twitch.tv/" + stream.channel.display_name + "</a></li>";
+                        ltrInfo.Text +=
+                        "<li>" +
+                        "<span style=\"font-weight:bold;\">" + "twitch.tv/" + stream.to_name + "</span><br/>" +
+                        "<a onclick=\"fillBoxFromApi('" + stream.to_name + ":_160p" + "')\">" + "160p" + "</a>&nbsp;" +
+                        "<a onclick=\"fillBoxFromApi('" + stream.to_name + ":_360p" + "')\">" + "360p" + "</a>&nbsp;" +
+                        "<a onclick=\"fillBoxFromApi('" + stream.to_name + ":_480p" + "')\">" + "480p" + "</a>&nbsp;" +
+                        "<a onclick=\"fillBoxFromApi('" + stream.to_name + ":_760p" + "')\">" + "760p" + "</a>&nbsp;" +
+                        "<a onclick=\"fillBoxFromApi('" + stream.to_name + ":audio_only" + "')\">" + "AudioOnly" + "</a>&nbsp;" +
+                        "</li>";
+                    }
                 }
                 ltrInfo.Text += "</ul>";
 
 
-                List<StreamerUrlData> weaverUrls = new List<StreamerUrlData>();
-                List<StreamerUrlData.UrlInfo> weaverUrlInfos = new List<StreamerUrlData.UrlInfo>();
-                int counter = 0;
-                int qualityCounter = 0;
+                //List<StreamerUrlData> weaverUrls = new List<StreamerUrlData>();
+                //List<StreamerUrlData.UrlInfo> weaverUrlInfos = new List<StreamerUrlData.UrlInfo>();
+                //int counter = 0;
+                //int qualityCounter = 0;
             }
+        }
+
+        public bool IsLive(string id)
+        {
+            string apiUrl = "https://api.twitch.tv/helix/streams?user_id=" + id;
+
+
+            Uri address = new Uri(apiUrl);
+
+            // Create the web request 
+            HttpWebRequest request = WebRequest.Create(address) as HttpWebRequest;
+            request.Headers["Client-ID"] = "cayy6vdna64rpak248vna4kbqythej";
+
+            // Set type to POST 
+            request.Method = "GET";
+            request.ContentType = "text/xml";
+
+            using (HttpWebResponse response = request.GetResponse() as HttpWebResponse)
+            {
+                // Get the response stream 
+                StreamReader reader = new StreamReader(response.GetResponseStream());
+
+                // Console application output 
+                string strOutputJson = FormatJson(reader.ReadToEnd());
+
+                //dynamic jsonObj = JsonConvert.DeserializeObject(strOutputJson);
+                var data = JsonConvert.DeserializeObject<Rootobject2>(strOutputJson);
+                if (data.data.Length > 0)
+                {
+                    if (data.data[0].type == "live")
+                        return true;
+                }
+                
+            }
+
+            return false;
         }
 
         [WebMethod]

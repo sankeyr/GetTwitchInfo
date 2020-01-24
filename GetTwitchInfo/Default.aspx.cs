@@ -188,7 +188,7 @@ namespace GetTwitchInfo
         {
 
             string url = "https://api.twitch.tv/kraken/streams/followed?oauth_token=xsmfc5wupj9nkjyyrkayh933b0kayk";
-            string apiUrl = " https://api.twitch.tv/helix/users/follows?from_id=108559469";
+            string apiUrl = " https://api.twitch.tv/helix/users/follows?from_id=108559469&first=100";
 
 
             Uri address = new Uri(apiUrl);

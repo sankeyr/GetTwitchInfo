@@ -184,18 +184,37 @@ namespace GetTwitchInfo
 
         }
 
+
+        public class ValidateToken
+        {
+            public string client_id { get; set; }
+            public object[] scopes { get; set; }
+            public int expires_in { get; set; }
+        }
+
+
+        public class RefreshToken
+        {
+            public string access_token { get; set; }
+            public int expires_in { get; set; }
+            public string token_type { get; set; }
+        }
+
+
         protected void Page_Load(object sender, EventArgs e)
         {
 
             string url = "https://api.twitch.tv/kraken/streams/followed?oauth_token=xsmfc5wupj9nkjyyrkayh933b0kayk";
-            string apiUrl = " https://api.twitch.tv/helix/users/follows?from_id=108559469&first=100";
+            string apiUrl = "https://api.twitch.tv/helix/users/follows?from_id=108559469&first=100";
 
 
             Uri address = new Uri(apiUrl);
 
             // Create the web request 
             HttpWebRequest request = WebRequest.Create(address) as HttpWebRequest;
+            string validToken = getValidToken();
             request.Headers["Client-ID"] = "cayy6vdna64rpak248vna4kbqythej";
+            request.Headers["Authorization"] = "Bearer " + validToken;
 
             // Set type to POST 
             request.Method = "GET";
@@ -223,7 +242,7 @@ namespace GetTwitchInfo
 
                 foreach (var stream in data.data)
                 {
-                    var isLive = IsLive(stream.to_id);
+                    var isLive = IsLive(stream.to_id, validToken);
                     if (isLive)
                     {
                         //ltrInfo.Text += "<li><a onclick=\"fillBoxFromApi('" + stream.channel.display_name.ToString() + "')\">" + "twitch.tv/" + stream.channel.display_name + "</a></li>";
@@ -248,7 +267,116 @@ namespace GetTwitchInfo
             }
         }
 
-        public bool IsLive(string id)
+        protected string getValidToken()
+        {
+            string token;
+            //Check cookie for token
+            HttpCookie twitchTokenCookie = Request.Cookies["TwitchToken"];
+
+            // Read the cookie information and display it.
+            if (twitchTokenCookie != null)
+            {
+                //get token from cookie and validate               
+                token = twitchTokenCookie.Value;
+                if (isTokenValid(token))
+                {
+                    return token;
+                }
+                else
+                {
+                    token = getRefreshToken();
+                    HttpCookie myCookie = new HttpCookie("TwitchToken");
+                    DateTime now = DateTime.Now;
+
+                    // Set the cookie value.
+                    myCookie.Value = token;
+                    // Set the cookie expiration date.
+                    myCookie.Expires = now.AddYears(50); // For a cookie to effectively never expire
+
+                    // Add the cookie.
+                    Response.Cookies.Add(myCookie);
+                    return token;
+                }
+            }
+            else
+            {
+                token = getRefreshToken();
+                HttpCookie myCookie = new HttpCookie("TwitchToken");
+                DateTime now = DateTime.Now;
+
+                // Set the cookie value.
+                myCookie.Value = token;
+                // Set the cookie expiration date.
+                myCookie.Expires = now.AddYears(50); // For a cookie to effectively never expire
+
+                // Add the cookie.
+                Response.Cookies.Add(myCookie);
+                return token;
+
+            }
+        }
+
+        protected bool isTokenValid(string token)
+        {
+            string url = "https://id.twitch.tv/oauth2/validate";
+
+            Uri address = new Uri(url);
+
+            // Create the web request 
+            HttpWebRequest request = WebRequest.Create(address) as HttpWebRequest;
+            request.Headers["Authorization"] = "OAuth " + token;
+
+            // Set type to POST 
+            request.Method = "GET";
+            request.ContentType = "text/xml";
+
+            using (HttpWebResponse response = request.GetResponse() as HttpWebResponse)
+            {
+                // Get the response stream 
+                StreamReader reader = new StreamReader(response.GetResponseStream());
+
+                // Console application output 
+                string strOutputJson = FormatJson(reader.ReadToEnd());
+
+                //dynamic jsonObj = JsonConvert.DeserializeObject(strOutputJson);
+                var data = JsonConvert.DeserializeObject<ValidateToken>(strOutputJson);
+
+                if (string.IsNullOrEmpty(data.client_id))
+                    return false;
+                else
+                    return true;
+            }
+        }
+
+        protected string getRefreshToken()
+        {
+            string url = "https://id.twitch.tv/oauth2/token?client_id=cayy6vdna64rpak248vna4kbqythej&client_secret=mkjf5tnze96ozo2juipgexouomrts8&grant_type=client_credentials";
+
+            Uri address = new Uri(url);
+
+            // Create the web request 
+            HttpWebRequest request = WebRequest.Create(address) as HttpWebRequest;
+            //request.Headers["Authorization"] = "OAuth " + token;
+
+            // Set type to POST 
+            request.Method = "POST";
+            request.ContentType = "text/xml";
+
+            using (HttpWebResponse response = request.GetResponse() as HttpWebResponse)
+            {
+                // Get the response stream 
+                StreamReader reader = new StreamReader(response.GetResponseStream());
+
+                // Console application output 
+                string strOutputJson = FormatJson(reader.ReadToEnd());
+
+                //dynamic jsonObj = JsonConvert.DeserializeObject(strOutputJson);
+                var data = JsonConvert.DeserializeObject<RefreshToken>(strOutputJson);
+
+                return data.access_token;
+            }
+        }
+        public bool IsLive(string id, string validToken)
         {
             string apiUrl = "https://api.twitch.tv/helix/streams?user_id=" + id;
 
@@ -258,6 +386,7 @@ namespace GetTwitchInfo
             // Create the web request 
             HttpWebRequest request = WebRequest.Create(address) as HttpWebRequest;
             request.Headers["Client-ID"] = "cayy6vdna64rpak248vna4kbqythej";
+            request.Headers["Authorization"] = "Bearer " + validToken;
 
             // Set type to POST 
             request.Method = "GET";
@@ -278,7 +407,7 @@ namespace GetTwitchInfo
                     if (data.data[0].type == "live")
                         return true;
                 }
-                
+
             }
 
             return false;

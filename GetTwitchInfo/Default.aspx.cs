@@ -226,6 +226,8 @@ namespace GetTwitchInfo
             string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, subfoldername, filename);
             string filePath2 = "C:\\Program Files (x86)\\Streamlink\\bin\\streamlink.exe";
 
+            string youtubeLink = getYoutubeStreams();
+
             using (HttpWebResponse response = request.GetResponse() as HttpWebResponse)
             {
                 // Get the response stream 
@@ -239,6 +241,15 @@ namespace GetTwitchInfo
 
 
                 ltrInfo.Text = "<ul>";
+
+                if (!string.IsNullOrEmpty(youtubeLink))
+                {
+                    ltrInfo.Text +=
+                        "<li>" +
+                        "<span style=\"font-weight:bold;\">" + "THE TWO TIME" + "</span><br/>" +
+                        "<a href=\"" + youtubeLink + "\" target=\"" + "_blank" + "\">" + "YouTube" + "</a>&nbsp;" +
+                        "</li>";
+                }
 
                 foreach (var stream in data.data)
                 {
@@ -265,6 +276,42 @@ namespace GetTwitchInfo
                 //int counter = 0;
                 //int qualityCounter = 0;
             }
+        }
+
+        protected string getYoutubeStreams()
+        {
+            string apiUrl = "https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=UCcJL2ld6kxy_nuV1u7PVQ0g&type=video&eventType=live&key=AIzaSyDi6krVvwxugCoC_jdcmFxxDlM-2WaoieI"; //Dr. D          
+
+            Uri address = new Uri(apiUrl);
+
+            // Create the web request 
+            HttpWebRequest request = WebRequest.Create(address) as HttpWebRequest;
+ 
+            //request.Headers["Client-ID"] = "cayy6vdna64rpak248vna4kbqythej";
+            //request.Headers["Authorization"] = "Bearer " + validToken;
+
+            // Set type to POST 
+            request.Method = "GET";
+            request.ContentType = "text/xml";
+
+            using (HttpWebResponse response = request.GetResponse() as HttpWebResponse)
+            {
+                // Get the response stream 
+                StreamReader reader = new StreamReader(response.GetResponseStream());
+
+                // Console application output 
+                string strOutputJson = FormatJson(reader.ReadToEnd());
+
+                //dynamic jsonObj = JsonConvert.DeserializeObject(strOutputJson);
+                var data = JsonConvert.DeserializeObject<YouTubeStream.Rootobject>(strOutputJson);
+
+                if (data.items.Length > 0)
+                    return "https://www.youtube.com/channel/UCcJL2ld6kxy_nuV1u7PVQ0g/live";
+                else
+                    return string.Empty;
+
+            }
+            //return string.Empty;
         }
 
         protected string getValidToken()
@@ -329,22 +376,28 @@ namespace GetTwitchInfo
             // Set type to POST 
             request.Method = "GET";
             request.ContentType = "text/xml";
-
-            using (HttpWebResponse response = request.GetResponse() as HttpWebResponse)
+            try
             {
-                // Get the response stream 
-                StreamReader reader = new StreamReader(response.GetResponseStream());
+                using (HttpWebResponse response = request.GetResponse() as HttpWebResponse)
+                {
+                    // Get the response stream 
+                    StreamReader reader = new StreamReader(response.GetResponseStream());
 
-                // Console application output 
-                string strOutputJson = FormatJson(reader.ReadToEnd());
+                    // Console application output 
+                    string strOutputJson = FormatJson(reader.ReadToEnd());
 
-                //dynamic jsonObj = JsonConvert.DeserializeObject(strOutputJson);
-                var data = JsonConvert.DeserializeObject<ValidateToken>(strOutputJson);
+                    //dynamic jsonObj = JsonConvert.DeserializeObject(strOutputJson);
+                    var data = JsonConvert.DeserializeObject<ValidateToken>(strOutputJson);
 
-                if (string.IsNullOrEmpty(data.client_id))
-                    return false;
-                else
-                    return true;
+                    if (string.IsNullOrEmpty(data.client_id))
+                        return false;
+                    else
+                        return true;
+                }
+            }
+            catch
+            {
+                return false;
             }
         }
 

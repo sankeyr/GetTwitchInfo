@@ -146,8 +146,7 @@
     <Content Include="Content\bootstrap.css.map" />
     <Content Include="Content\bootstrap-theme.min.css.map" />
     <Content Include="Content\bootstrap-theme.css.map" />
-    <None Include="Properties\PublishProfiles\CustomProfile.pubxml" />
-    <None Include="Properties\PublishProfiles\TwitchStreamApp - Web Deploy.pubxml" />
+    <None Include="Properties\PublishProfiles\TwitchStreamApp - Web Deploy1.pubxml" />
     <None Include="Scripts\jquery-3.3.1.intellisense.js" />
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
@@ -231,6 +230,7 @@
     <Compile Include="ViewSwitcher.ascx.designer.cs">
       <DependentUpon>ViewSwitcher.ascx</DependentUpon>
     </Compile>
+    <Compile Include="YouTubeStream.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
